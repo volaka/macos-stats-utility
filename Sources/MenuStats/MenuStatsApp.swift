@@ -39,7 +39,7 @@ struct StatsPanel: View {
                 }
 
                 if let battery = monitor.battery {
-                    Card(title: "Battery", symbol: battery.isCharging ? "battery.100percent.bolt" : "battery.100percent",
+                    Card(title: "Battery", symbol: battery.symbol,
                          value: "\(Format.percent(battery.charge)) · \(batteryState(battery))") {
                         HStack {
                             Text("Health \(Format.percent(battery.health))")

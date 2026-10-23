@@ -42,13 +42,15 @@ enum Stats {
     // MARK: Calculations
 
     static func cpuUsage(from old: CPUTicks, to new: CPUTicks) -> Double {
-        guard new.total > old.total else { return 0 }
+        // Tick counters are 32-bit and wrap; skip the sample instead of trapping on underflow.
+        guard new.total > old.total, new.busy >= old.busy else { return 0 }
         return Double(new.busy - old.busy) / Double(new.total - old.total)
     }
 
     /// Same definition as Activity Monitor's "Memory Used": app memory + wired + compressed.
     static func memoryUsed(_ pages: MemoryPages, pageSize: UInt64) -> UInt64 {
-        (pages.internal - pages.purgeable + pages.wired + pages.compressed) * pageSize
+        let appMemory = pages.internal > pages.purgeable ? pages.internal - pages.purgeable : 0
+        return (appMemory + pages.wired + pages.compressed) * pageSize
     }
 
     /// Counters can reset (interface restart) or wrap; report 0 instead of a negative rate.
@@ -142,5 +144,13 @@ enum Stats {
               let dictionary = properties?.takeRetainedValue() as? [String: Any]
         else { return [:] }
         return dictionary
+    }
+}
+
+extension Battery {
+    /// SF Symbols only has a bolt variant for the full battery.
+    var symbol: String {
+        if isCharging { return "battery.100percent.bolt" }
+        return "battery.\(Int((charge * 4).rounded()) * 25)percent"
     }
 }

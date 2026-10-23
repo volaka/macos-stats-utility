@@ -14,7 +14,8 @@ enum Format {
         let units = ["B", "KB", "MB", "GB", "TB"]
         var value = value
         var unit = 0
-        while value >= base && unit < units.count - 1 {
+        // Compare after rounding to one decimal, so 999.96 KB shows as "1.0 MB", not "1000.0 KB".
+        while (value * 10).rounded() >= base * 10 && unit < units.count - 1 {
             value /= base
             unit += 1
         }

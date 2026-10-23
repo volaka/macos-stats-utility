@@ -59,3 +59,25 @@ import Foundation
     let used = Stats.memoryUsed(pages, pageSize: UInt64(getpagesize()))
     #expect(used > 0 && used < ProcessInfo.processInfo.physicalMemory)
 }
+
+@Test func cpuUsageIsZeroWhenBusyCounterWraps() {
+    let old = CPUTicks(busy: 100, total: 1_000)
+    let new = CPUTicks(busy: 50, total: 1_100)
+    #expect(Stats.cpuUsage(from: old, to: new) == 0)
+}
+
+@Test func memoryUsedTreatsExcessPurgeableAsZeroAppMemory() {
+    let pages = MemoryPages(internal: 100, purgeable: 200, wired: 10, compressed: 5)
+    #expect(Stats.memoryUsed(pages, pageSize: 16_384) == 15 * 16_384)
+}
+
+@Test func batterySymbolFollowsChargeLevel() {
+    func battery(charge: Double, isCharging: Bool = false) -> Battery {
+        Battery(charge: charge, isCharging: isCharging, isPluggedIn: isCharging,
+                health: 1, cycles: 0, temperature: 0)
+    }
+    #expect(battery(charge: 0.08).symbol == "battery.0percent")
+    #expect(battery(charge: 0.6).symbol == "battery.50percent")
+    #expect(battery(charge: 0.9).symbol == "battery.100percent")
+    #expect(battery(charge: 0.3, isCharging: true).symbol == "battery.100percent.bolt")
+}

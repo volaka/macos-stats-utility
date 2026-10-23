@@ -18,3 +18,7 @@ import Testing
 @Test func memoryUsesBinaryUnitsLikeActivityMonitor() {
     #expect(Format.memory(36 * 1024 * 1024 * 1024) == "36.0 GB")
 }
+
+@Test func bytesMoveToNextUnitWhenRoundingReachesIt() {
+    #expect(Format.bytes(999_960) == "1.0 MB")
+}
